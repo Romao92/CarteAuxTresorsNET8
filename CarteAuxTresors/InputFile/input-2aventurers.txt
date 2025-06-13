@@ -1,0 +1,11 @@
+﻿# {C comme Card} - {Nb. de Cell en largeur} - {Nb. de Cell en hauteur}
+C - 3 - 4
+# {M comme Montagne} - {Axe horizontal} - {Axe vertical}
+M - 1 - 0
+M - 2 - 1
+# {T comme Trésor} - {Axe horizontal} - {Axe vertical} - {Nb. de trésors}
+T - 0 - 3 - 1
+T - 2 - 3 - 2
+# {A comme Aventurer} - {Nom de l’Aventurer} - {Axe horizontal} - {Axe vertical} - {Orientation} - {Séquence de Movement}
+A - Alice - 0 - 0 - E - AADADAA
+A - Tom - 2 - 2 - N - AGAGADAA
