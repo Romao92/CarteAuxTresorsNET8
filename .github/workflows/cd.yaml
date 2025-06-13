@@ -1,0 +1,79 @@
+# .github/workflows/cd.yml
+name: CD – Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Publish for macOS
+        run: |
+          dotnet publish \
+            --configuration Release \
+            --runtime osx-x64 \
+            --self-contained false \
+            --output publish/osx
+
+      - name: Publish for Windows
+        run: |
+          dotnet publish \
+            --configuration Release \
+            --runtime win-x64 \
+            --self-contained false \
+            --output publish/win
+
+      - name: Archive artifacts
+        run: |
+          mkdir -p dist
+          tar czf dist/myapp-${{ github.ref_name }}-osx.tar.gz -C publish/osx .
+          tar czf dist/myapp-${{ github.ref_name }}-win.tar.gz -C publish/win .
+
+      - name: Create GitHub release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload macOS asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/myapp-${{ github.ref_name }}-osx.tar.gz
+          asset_name: myapp-${{ github.ref_name }}-osx.tar.gz
+          asset_content_type: application/gzip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/myapp-${{ github.ref_name }}-win.tar.gz
+          asset_name: myapp-${{ github.ref_name }}-win.tar.gz
+          asset_content_type: application/gzip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
