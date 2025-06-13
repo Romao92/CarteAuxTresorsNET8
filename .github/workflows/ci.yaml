@@ -1,0 +1,39 @@
+# .github/workflows/ci.yml
+name: CI – Lint, Analyse & Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Install dotnet-format problem matcher
+        uses: xt0rted/dotnet-format-problem-matcher@v1
+
+      - name: Check formatting
+        run: dotnet format --verify-no-changes --verbosity minimal
+
+      - name: Build with Roslyn analyzers
+        run: dotnet build --configuration Release --no-restore \
+             -p:EnableNETAnalyzers=true -p:AnalysisMode=all
+
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal
